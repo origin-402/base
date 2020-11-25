@@ -1,0 +1,45 @@
+<div th:fragment="menu">
+    <nav class="navbar-default navbar-static-side" role="navigation">
+        <div class="nav-close"><i class="fa fa-times-circle"></i>
+        </div>
+        <div class="sidebar-collapse">
+            <ul class="nav" id="side-menu">
+                <li class="nav-header">
+                    <div class="dropdown profile-element">
+                        <span><img alt="image" class="img-circle" th:src="@{/assets/img/profile_small.jpg}"  style="width: 64px; height: 64px;"/></span>
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                             <span class="clear">
+                                <span class="block m-t-xs"><strong class="font-bold">管理后台</strong></span>
+                                <span class="text-muted text-xs block" th:text="${session.sessionUser.name}">超级管理员<b class="caret"></b></span>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                            <li>
+                                <a href="javascript:void(0)" onclick="updatePassword();">修改密码</a>
+                            </li>
+                            <li>
+                                <a th:href="@{/logout}">退出</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="logo-element">管理平台
+                    </div>
+                </li>
+                <li>
+                    <a class="J_menuItem" th:href="@{main}"><i class="fa fa-tv"></i> <span class="nav-label">首页</span></a>
+                </li>
+                <li th:if="${session.sessionUser.hasPermissions('/system_role')}">
+                    <a href="#"><i class="fa fa-user"></i> <span class="nav-label">用户管理</span><span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+                        <li th:if="${session.sessionUser.hasPermissions('/system_role/role_manage')}">
+                            <a class="J_menuItem" th:href="@{/system_role/role_manage}">角色管理</a>
+                        </li>
+                        <li th:if="${session.sessionUser.hasPermissions('/system_user/user_manage')}">
+                            <a class="J_menuItem" th:href="@{/system_user/user_manage}">用户管理</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>

@@ -1,0 +1,283 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色新增</title>
+    <link rel="shortcut icon" th:href="@{/assets/favicon.ico}"> 
+	<head  th:include="include/styleInclude"></head>
+    <link rel="stylesheet" th:href="@{/plugins/zTree/3.5/zTreeStyle.css}" type="text/css">
+    <link rel="stylesheet" th:href="@{/plugins/zTree/3.5/zTreeStyle.css}" type="text/css">
+    <link rel="stylesheet" th:href="@{/plugins/toastr/css/toastr.css}">
+    <style type="text/css">
+	.toast-center-center {
+	  top: 50%;
+	  left: 50%;
+	  margin-top: -25px;
+	  margin-left: -150px;
+	}
+	.active{
+		background-color: #23b7e5;
+	}
+	</style>
+</head>
+
+<body class="gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-3">
+           		<div class="ibox float-e-margins">
+              		<div class="ibox-title">
+                  		<h5>角色列表</h5>
+             		</div>
+	            	<div class="ibox-content">
+	                  	<div class="list-group">
+	                  		<a class="list-group-item" style="border: 0px; border-color: white;" th:each="role : ${roleList}" 
+	                  			th:onclick="@{|getMenu(this, '${role.id}')|}">
+	                          	<h3 th:text="${role.name}">角色</h3>
+	                  		</a>
+						 	<button type="button" onclick="createNew()" th:if="${session.sessionUser.hasPermissions('/system_role/saveRole')}"
+						 		class="btn btn-success" style="margin-top: 20px;"><i class="fa fa-plus-square"></i>&nbsp;创建角色</button>
+	                  	</div>
+	              	</div>
+          		</div>
+           	</div>
+           	<div class="col-sm-5">
+           		<div class="ibox-title">
+               		<h5>角色详情</h5>
+           		</div>
+             	<div class="ibox-content">
+             		<form class="form-horizontal">
+             			<div class="form-group">
+                            <label class="col-sm-3 control-label"><span style="color:red;">*</span>角色名称：</label>
+                            <div class="col-sm-8">
+                            	<input type="hidden" id="id" name="id">
+                                <input type="text"  class="form-control" id="name" name="name">
+                            </div>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+              			<div class="form-group">
+              				<label class="col-sm-3 control-label"><span style="color:red;">*</span>选择权限：</label>
+                            <div class="col-sm-8">
+	                       		<div id="tree_left" class="tree-demo">
+									<ul id="leftTree" class="ztree"></ul>
+						 		</div>
+                           	</div>
+                       	</div>
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-group">
+                          	<div class="col-sm-2"></div>
+                            <div class="col-sm-6 col-sm-offset-2">
+                               	<button class="btn btn-primary" type="button" th:onclick="@{save();}"><i class="fa fa-check"></i>&nbsp;保存</button>
+                               	<button class="btn btn-danger" type="button" data-toggle="modal" data-target="#infoConfirm"
+                               		th:if="${session.sessionUser.hasPermissions('/system_role/delete')}"><i class="fa fa-trash"></i>&nbsp;删除角色</button>
+                           	</div>
+                        </div>
+             		</form>
+             	</div>
+           	</div>
+            <div class="col-sm-1"></div>
+    	</div>
+    </div>
+	<div class="modal fade" id="infoConfirm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title"><i class="fa fa-warning"></i>&nbsp;提示</h3>
+				</div>
+				<div id="infoBody" class="modal-body">是否要删除该角色</div>
+				<div class="modal-footer">
+					<button id="delCancl" type="button" class="btn btn-default" data-dismiss="modal">
+						<i class="fa fa-times"></i>&nbsp;取消
+					</button>
+					<button id="sureUpdate" type="button" class="btn btn-primary" th:onclick="@{del();}">
+						<i class="fa fa-check"></i>&nbsp;确认
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+  	<script th:src="@{/assets/js/jquery.min.js?v=2.1.4}" ></script>
+    <script th:src="@{/assets/js/yuui/bootstrap.min.js}"></script>
+    <script th:src="@{/assets/js/content.min.js?v=1.0.0}"></script>
+    <script th:src="@{/plugins/zTree/3.5/jquery.ztree.core-3.5.js}"></script>
+	<script th:src="@{/plugins/zTree/3.5/jquery.ztree.excheck.js}"></script>
+    <script th:src="@{/plugins/toastr/js/toastr.min.js}"></script>
+	<script th:src="@{/plugins/layer/layer.js}"></script>
+    <script th:src="@{/assets/js/jquery.tips.js}"></script>
+    <script>
+    toastr.options.positionClass = 'toast-center-center';
+   	var menus;
+	var treeObj;
+	$(function () {
+		createZtreeForLeft();
+		var active = $(".list-group-item")[0];
+		$(active).click();
+	});
+	function createZtreeForLeft(){
+		var setting = {
+		/* 	view: {
+				showIcon: showIconForTree
+			}, */
+			data: {
+				simpleData: {
+					enable: true
+				}
+			},
+			  check: {  
+	                enable: true  
+	            },  
+			callback: {
+				onClick: zTreeOnClick
+			}
+		};
+		var zNodes =[];
+		
+		function showIconForTree(treeId, treeNode) {
+			return !treeNode.isParent;
+		};
+		function zTreeOnClick(event, treeId, treeNode) {
+		};
+		/* setting.check.chkboxType = { "Y" : "ps", "N" : "ps" }; */
+		$.ajaxSettings.async = false;
+		$.get( '/system_role/findAllMenuForZtree', function(data) {
+			if (data.code == "200") {
+				zNodes = data.data;
+				$.fn.zTree.init($("#leftTree"), setting, zNodes);
+				treeObj = $.fn.zTree.getZTreeObj("leftTree");
+				treeObj.expandAll(false);
+			//	treeObj.setting.check.chkboxType ={ "Y" : "ps", "N" : "s" };
+			}
+		}, 'json');
+		$.ajaxSettings.async = true;
+	}
+	
+	function createNew() {
+		$("#id").val('');
+		$("#name").val('');
+		treeObj.checkAllNodes(false);
+		treeObj.cancelSelectedNode();
+	}
+	
+	function save(){
+		var requestUrl = '';
+		var rolename = $("#name").val();
+		if (rolename == null || rolename == "") {
+			$("#name").tips({
+				side:3,
+	            msg:'角色名称不能为空',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#name").focus();
+        	return false;
+		}
+		menus = "";
+		var nodes = treeObj.getCheckedNodes(true);
+		for (var i = 0; i < nodes.length; i++) {
+			menus+=nodes[i].id+",";
+		}
+		var id = $("#id").val();
+		if (id != null && id != '') {
+			requestUrl = '/system_role/updateRole?id=' + id;
+		} else {
+			requestUrl = '/system_role/saveRole';
+		}
+		var index = layer.load(1, {
+			shade: [0.2,'#fff'] //0.1透明度的白色背景
+		});
+		$.ajax({
+			url:requestUrl,
+			data:{'menus': menus, 'name': rolename},
+			type:'post',
+			dataType:'json',
+			success:function(data) {
+				layer.close(index);
+				if('201' == data.code){
+					toastr.success('保存成功！');
+					setTimeout(function() {
+						window.location.reload();
+					}, 1000);
+				}else{
+					toastr.warning(data.message);
+				}
+			},
+			error:function(e) {
+				layer.close(index);
+				console.log(e);
+				if ('500' == e.status) {
+					toastr.warning(e.responseJSON.message)
+				}
+				if ('200' == e.status) {
+					toastr.error("您没有权限");
+				}
+			}
+		})
+	}
+	
+	function getMenu(_this, id) {
+		$(_this).siblings().removeClass('active');
+		$(_this).addClass('active');
+		if (treeObj == undefined) {
+			setTimeout(function () {
+		    }, 200);
+		}
+		treeObj.checkAllNodes(false);
+		treeObj.cancelSelectedNode();
+		$.ajax({
+			url: '/system_role/findRoleById?id=' + id,
+			type:'get',
+			dataType:'json',
+			success:function(data) {
+				var role = data.data;
+				$("#name").val(role.name);
+				$("#id").val(role.id);
+				var permissions = [];
+				permissions = role.permissions;
+				permissions.forEach(function(id, index) {
+					var node = treeObj.getNodeByParam("id", id);
+					if (null != node) {
+						treeObj.checkNode(node, true, false);
+					}
+				})
+			}
+		})
+	}
+	
+	function del() {
+		var id = $("#id").val();
+		if (id == null || id =='') {
+			toastr.warning('没有要删除的角色');
+			return false;
+		}
+		$.ajax({  
+            type: 'delete',  
+            url: '/system_role/delete?id=' + id,   
+            dataType: "json",
+            success: function(data) {  
+          	  if (data.code == '204') {
+	            	 toastr.success('删除成功！');
+	            	 setTimeout(function() {
+							window.location.reload();
+					}, 1000);
+          	  } else {
+          		  toastr.warning(data.message);
+          	  }
+            },
+            error: function (e) {
+            	console.log(e);
+				if ('500' == e.status) {
+					toastr.warning(e.responseJSON.message)
+				}
+				if ('200' == e.status) {
+					toastr.error("您没有权限");
+				}
+            }
+      });  
+	}
+    </script>
+<!--     <script type="text/javascript" src="http://tajs.qq.com/stats?sId=9051096" charset="UTF-8"></script> -->
+</body>
+
+</html>

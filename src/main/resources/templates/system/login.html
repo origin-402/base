@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>后台管理系统</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <link rel="shortcut icon" th:href="@{/assets/favicon.ico}"> 
+    <head  th:include="include/hAdminInclude"></head>
+   	<link th:href="@{/assets/css/login.min.css}" rel="stylesheet">
+   	<link th:href="@{/plugins/toastr/css/toastr.css}" rel="stylesheet">
+    <style type="text/css">
+        .toast-center-center {
+          top: 50%;
+          left: 50%;
+          margin-top: -25px;
+          margin-left: -150px;
+        }
+	</style>
+</head>
+
+<body class="signin">
+<div class="signinpanel">
+    <div class="row">
+        <div class="col-sm-7">
+            <div class="signin-info">
+                <div class="logopanel m-b">
+                    <h1>管理系统</h1>
+                </div>
+                <div class="m-b"></div>
+                <h4>欢迎使用 <strong>管理系统</strong></h4>
+            </div>
+        </div>
+        <div class="col-sm-5">
+            <form >
+                <h4 class="no-margins">登录：</h4>
+                <p class="m-t-md">管理系统</p>
+                <input type="text" class="form-control uname" placeholder="用户名" id="user-name" />
+                <input type="password" class="form-control pword m-b" placeholder="密码" id="user-password" />
+                <input id="remember-me" type="checkbox" onclick="savePass()" >
+                <label id="remember" for="remember-me">  记住密码
+                </label>
+                <button class="btn btn-success btn-block" type="button" id="sub" onclick="serverCheck()">登录</button>
+            </form>
+        </div>
+    </div>
+    <div class="signup-footer">
+        <div class="pull-left">
+            &copy; 2019 All Rights Reserved. JD
+        </div>
+    </div>
+</div>
+
+    <!-- 全局js -->
+    <script th:src="@{/assets/js/jquery.min.js?v=2.1.4}"></script>
+    <script th:src="@{/assets/js/bootstrap.min.js?v=3.3.6}"></script>
+    <script th:src="@{/assets/js/jquery.cookie.js?v=2.1.4}"></script>
+    <script th:src="@{/plugins/toastr/js/toastr.min.js}"></script>
+	<script type="text/javascript">
+	toastr.options.positionClass = 'toast-center-center';
+	$(document).ready(function() {
+		loadTopWindow();
+	})
+	$(document).keyup(function(event) {
+		if (event.keyCode == 13) {
+			$("#sub").trigger("click");
+		}
+	});
+	
+	function loadTopWindow(){
+		if (window.top!=null && window.top.document.URL!=document.URL){
+			window.top.location= document.URL; 
+		}
+	}
+	
+	function serverCheck(){
+		if(check()){
+			var username = $("#user-name").val();
+			var password = $("#user-password").val();
+			$.post("/login", {username:username,password:password,tm:new Date().getTime()},
+				function(data){
+					if("201" == data.code){
+						window.location.href="/index";
+						saveCookie();
+					}else {
+						toastr.error(data.message);
+						$("#user-name").focus();
+					}
+				}, 'json');
+		}
+	}
+
+	function check() {
+		if ($("#user-name").val() == "") {
+			toastr.warning('请填写用户名');
+			$("#user-name").focus();
+			return false;
+		} else {
+			$("#user-name").val(jQuery.trim($('#user-name').val()));
+		}
+
+		if ($("#user-password").val() == "") {
+			toastr.warning('请填写密码');
+			$("#user-password").focus();
+			return false;
+		}
+		return true;
+	}
+
+    function savePass() {
+        if (!$("#remember-me").prop("checked")) {
+            $.cookie('user-name', '', {
+                expires : -1
+            });
+            $.cookie('user-password', '', {
+                expires : -1
+            });
+            $("#user-name").val('');
+            $("#user-password").val('');
+        }
+    }
+
+    function saveCookie() {
+        if ($("#remember-me").prop("checked")) {
+            $.cookie('user-name', $("#user-name").val(), {
+                expires : 7
+            });
+            $.cookie('user-password', $("#user-password").val(), {
+                expires : 7
+            });
+        }
+    }
+
+    jQuery(function() {
+        var username = $.cookie('user-name');
+        var password = $.cookie('user-password');
+        if (typeof(username) != "undefined"
+            && typeof(password) != "undefined") {
+            $("#user-name").val(username);
+            $("#user-password").val(password);
+            $("#remember-me").prop("checked", true);
+        }
+    });
+	</script>
+    
+    
+
+</body>
+
+</html>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jd.em.base.mapper.RoleMapper">
+
+    <insert id="saveRole" parameterType="pageData">
+        insert into system_role(id,name,remark,create_time,create_user) values(#{roleid},#{name},#{remark},#{created_time},#{created_user})
+    </insert>  
+      
+    <insert id="saveRoleAndMenu" parameterType="pageData">  
+        insert into system_role_menu(menu_id,role_id) values(#{menu_id},#{roleid})  
+    </insert>    
+    
+    <select id="findAllMenuForZtree" resultType="pageData">
+        select 
+        	m.id,
+        	m.fid as pId,
+        	m.name 
+        from 
+        	system_menu m
+    </select>
+    
+
+    <update id="updateRole" parameterType="pageData">
+    	update system_role
+ 		   	set
+ 		name = #{name},
+ 		remark = #{remark}
+ 		where id = #{id}
+    </update>
+    
+    <select id="findAllMenuByRoleId" parameterType="String" resultType="String">  
+        select menu_id as id from system_role_menu where role_id = #{id}
+    </select>  
+    
+    <select id="findAllMenuUrlByByRole" parameterType="string" resultType="String">  
+      select m.url from system_menu m 
+		left join system_role_menu rm
+		on m.id = rm.menu_id 
+		where rm.role_id=#{id}
+    </select>
+    
+    <select id="findAllRoles" resultType="pageData">
+    	select
+    		id,
+    		name
+    	from
+    		system_role
+    </select>
+    
+    <!-- 根据id删除角色 -->
+    <delete id="deleteRoleById" parameterType="string">
+    	delete from
+    		system_role
+    	where
+    		id=#{id}
+    </delete>
+
+    <!-- 根据名称查询 -->
+	<select id="findRoleByName" resultType="pageData">
+		select
+		id,
+		name
+		from
+		system_role
+		where
+		name=#{param1}
+		<if test="param1 != null and param1 != ''">
+			and id not in (#{param1})
+		</if>
+
+	</select>
+
+	<select id="findRoleById" parameterType="string" resultType="pageData">
+    	select * from system_role where id = #{id}
+    </select>
+
+
+    <delete id="deletePermissionsByRoleId">  
+        delete from system_role_menu where role_id = #{id}  
+    </delete>
+</mapper>

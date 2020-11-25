@@ -1,0 +1,271 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人信息</title>
+    <link rel="shortcut icon" href="favicon.ico"> 
+	<head  th:include="include/styleInclude"></head>
+    <link th:href="@{/assets/css/plugins/iCheck/custom.css}"  rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/assets/css/cropper.min.css}">
+    <link rel="stylesheet" th:href="@{/plugins/toastr/css/toastr.css}">
+    <style type="text/css">
+        .toast-center-center {
+            top: 50%;
+            left: 50%;
+            margin-top: -25px;
+            margin-left: -150px;
+        }
+    </style>
+</head>
+
+<body class="gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>个人信息</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <form id="form_personal" class="form-horizontal">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <p class="fa fa-book">&nbsp;基本信息</p>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="form-group col-sm-6">
+                                            <label class="col-sm-3 control-label"><span style="color:red;">*</span>登录账号：</label>
+                                            <div class="col-sm-9">
+                                                <input type="text"  placeholder="" class="form-control" id="username" name="username" th:value="${user.username}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="form-group col-sm-6">
+                                            <label class="col-sm-3 control-label">姓名：</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" id="name" placeholder="" class="form-control" name="name" th:value="${user.name}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-sm-6">
+                                            <label class="col-sm-3 control-label"><span style="color:red;">*</span>手机号：</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" id="phone" placeholder="" class="form-control" name="phone" th:value="${user.phone}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <p class="fa fa-tags">&nbsp;头像信息</p>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="form-group col-sm-3">
+                                        <label class="col-sm-4 control-label"><span style="color:red;">*</span>头像：</label>
+                                        <div class="col-sm-5">
+                                            <a data-toggle="modal" data-target="#cut_image">
+                                                <img id="finalImg" class="img-circle" th:src="${user.picture}" style="width: 100px; height: 100px;">
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-sm-6">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                    <button class="btn btn-primary center-block" type="button" th:onclick="@{save();}"><i class="fa fa-check"></i>&nbsp;保存</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="cut_image" class="modal fade" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">裁切图片</h3>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="image-crop" style="height: 400px; width: 400px">
+                                <img id="" src="">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h4>图片预览：</h4>
+                            <div id="preview_image_div" class="img-preview img-preview-sm" ></div>
+                            <h4>说明：</h4>
+                            <p>
+                                你可以选择图片上传，然后裁剪图片
+                            </p>
+                            <div class="btn-group">
+                                <label title="上传图片" for="file" class="btn btn-primary">
+                                    <input id="file" type="file" accept="image/*" name="file" class="hide"> 上传图片
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="canclPass"><i class="fa fa-times"></i>&nbsp;关闭</button>
+                    <button type="button" onclick="saveImage()"  class="btn btn-primary"><i class="fa fa-check"></i>&nbsp;保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  	<script th:src="@{/assets/js/2.0.3/jquery.min.js}" ></script>
+  	<script th:src="@{/assets/js/jquery.form.js}" ></script>
+    <script th:src="@{/assets/js/bootstrap.min.js?v=3.3.6}"></script>
+    <script th:src="@{/assets/js/content.min.js?v=1.0.0}"></script>
+    <script th:src="@{/assets/js/plugins/iCheck/icheck.min.js}"></script>
+    <script  th:src="@{/assets/js/cropper.min.js}"></script>
+    <script th:src="@{/plugins/toastr/js/toastr.min.js}"></script>
+    <script th:src="@{/plugins/layer/layer.js}"></script>
+    <script th:src="@{/assets/js/jquery.tips.js}"></script>
+</body>
+<script>
+    toastr.options.positionClass = 'toast-center-center';
+    $(document).ready(function(){$(".i-checks").iCheck({checkboxClass:"icheckbox_square-green",radioClass:"iradio_square-green",})});
+    var fileName;
+    var imagesUrl = '';
+
+    var o = $(".image-crop > img");
+    $(o).cropper({
+        aspectRatio: 100/100,
+        preview: ".img-preview",
+        done: function() {}
+    });
+    var r = $("#file");
+    window.FileReader ? r.change(function() {
+        var e, i = new FileReader,
+            t = this.files;
+        if (t.length > 0) {
+            var file = t[0];
+            fileName = file.name;
+        }
+        t.length && (e = t[0], /^image\/\w+$/.test(e.type) ? (i.readAsDataURL(e), i.onload = function() {
+            r.val(""),
+                o.cropper("reset", !0).cropper("replace", this.result)
+        }) : showMessage("请选择图片文件"))
+    }) : r.addClass("hide")
+
+
+    function saveImage() {
+        var html = $('#preview_image_div').html();
+        if (html == '') {
+            toastr.warning('请选择需要裁剪的照片')
+        }
+        $("#finalImg").prop("src","");
+        var data = o.cropper("getCroppedCanvas");
+        var base64url = data.toDataURL('image/png'); //转换为base64地址形式
+        $("#finalImg").prop("src",base64url);
+        uploadImage(base64url);
+        $('#canclPass').click();
+    }
+
+    function dataURItoBlob (dataurl) {
+        console.log(dataurl);
+        var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
+    }
+
+    function uploadImage(base64Data) {
+        var fd = new FormData();
+        var blob = dataURItoBlob(base64Data);
+        fd.append("files", blob, fileName);
+        fd.append('module', '1');
+        $.ajax({
+            url:'/api/v1/file/exclude/uploadImage',
+            data:fd,
+            type:'post',
+            contentType:false,
+            processData:false,
+            dataType:'json',
+            success:function (data) {
+                if (data.code == '201') {
+                    imagesUrl = data.data;
+                } else {
+                    imagesUrl = '';
+                }
+            },
+            error:function (e) {
+                console.log(e);
+                imagesUrl = '';
+            }
+        })
+    }
+
+    function save() {
+        var name = $('#name').val();
+        if (name == null || name == '') {
+            $("#name").tips({
+                side:3,
+                msg:'姓名不能为空',
+                bg:'#AE81FF',
+                time:2
+            });
+            $("#name").focus();
+            return false;
+        }
+        var phone = $('#phone').val();
+        if (phone == null || phone == '') {
+            $("#phone").tips({
+                side:3,
+                msg:'手机号不能为空',
+                bg:'#AE81FF',
+                time:2
+            });
+            $("#phone").focus();
+            return false;
+        }
+        if (phone.length != 11) {
+            $("#phone").tips({
+                side:3,
+                msg:'手机号参数非法',
+                bg:'#AE81FF',
+                time:2
+            });
+            $("#phone").focus();
+            return false;
+        }
+        var index = layer.load(1, {
+            shade: [0, 2, '#fff']
+        });
+        $("#form_personal").ajaxSubmit({
+            url:'/system_user/exclude/updateUser',
+            data:{'imagesUrl': imagesUrl},
+            type:'post',
+            dataType:'json',
+            success:function(data) {
+                layer.close(index);
+                if (data.code == '201') {
+                    toastr.success('修改成功');
+                } else {
+                    toastr.warning(data.message);
+                }
+            },
+            error:function(e) {
+                layer.close(index);
+                console.log(e);
+                if ('500' == e.status) {
+                    toastr.warning(e.responseJSON.message)
+                }
+                if ('200' == e.status) {
+                    toastr.error("您没有权限");
+                }
+            }
+        })
+    }
+</script>
+
+</html>

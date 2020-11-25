@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jd.em.base.mapper.UserMapper">
+    <!--开启二级缓存-->
+  <!--   <cache type="org.mybatis.caches.ehcache.EhcacheCache"/> -->
+    <!--根据id查询用户详情-->
+    <select id="findById" parameterType="string" resultType="pageData">
+        SELECT 
+        	u.*
+        FROM
+        	system_user u
+        WHERE 
+        	u.id=#{id}
+    </select>
+    
+    <!-- 根据类别查询后台用户列表 -->  
+    <select id="listPageUser" parameterType="page" resultType="pageData">
+        select 
+        	u.id,
+        	u.name,
+        	u.username,
+        	u.phone,
+        	u.status,
+        	u.sex,
+        	u.resign,
+        	r.name as roleName
+        from
+	        system_user u left join system_role r on r.id=u.role_id
+	    where
+	    	u.id not in ('1')
+	    	and
+	    	u.delete_status='0'
+	    	<if test="pd.name != null and pd.name != ''">
+	    		and u.name like '%${pd.name}%'
+	    	</if>
+	    	<if test="pd.phone != null and pd.phone != ''">
+	    		and u.phone like '%${pd.phone}%'
+	    	</if>
+	    order by
+	   		u.status
+	   	asc,
+	   		u.name
+	   	asc  
+    </select>  
+    
+    <!-- 后台用户登录 -->
+    <select id="login" parameterType="pageData" resultType="user">  
+        select u.*, u.role_id as roleId from system_user u where u.username = #{username} and u.password = #{password} and u.`status` = 0 and u.delete_status='0'
+    </select>  
+    
+    <!-- 添加后台用户 -->
+    <insert id="saveUser" parameterType="pageData">
+    	insert into system_user(
+    		id,
+    		username,
+    		name,
+    		password,
+    		phone,
+    		create_user,
+    		create_time,
+    		role_id,
+    		status,
+    		sex,
+    		resign
+    	)values(
+    		#{id},
+    		#{username},
+    		#{name},
+    		#{password},
+    		#{phone},
+    		#{created_user},
+    		now(),
+    		#{role_id},
+    		#{status},
+    		#{sex},
+    		#{resign}
+    	)
+    </insert>
+
+    <!-- 修改用户信息 -->
+    <update id="updatePassword" parameterType="pageData">
+    	update
+    		system_user
+    	set
+    		password=#{password}
+    	where
+    		id=#{id}
+    </update>
+
+    <!-- 修改账户密码 -->
+    <select id="findUserByRoleId" parameterType="string" resultType="pageData">
+        select
+    		id
+    	from
+    		system_user
+    	where
+    		role_id=#{id}
+    		and
+    		delete_status='0'
+    </select>
+
+    <!-- 根据角色id查询用户 -->
+	<update id="updateUser" parameterType="pageData">
+		update
+			system_user
+		set
+			name=#{name},
+			<if test="status != null and status != ''">
+				status=#{status},
+			</if>
+			<if test="picture != null and picture != ''">
+				picture=#{picture},
+			</if>
+			<if test="role_id != null and role_id != ''">
+				role_id=#{role_id},
+			</if>
+			phone=#{phone},
+			sex=#{sex},
+			resign=#{resign}
+		where
+			id=#{id}
+	</update>
+
+    <!-- 统计用户名出现的次数 -->
+    <select id="countByUserName" resultType="int">
+    	select
+    		count(id)
+    	from
+    		system_user
+    	where
+    		username=#{param2}
+    		<if test="param1 != null and param1 != ''">
+    			and id not in (#{param1})
+    		</if>
+    </select>
+
+	<!-- 删除用户 -->
+	<update id="deleteUser">
+		update
+			system_user
+		set
+			delete_status='1',
+			delete_user=#{param2}
+		where
+			id=#{param1}
+	</update>
+
+	<!-- 查询所有用户id -->
+	<select id="listAllSystemUserId" resultType="java.lang.String">
+		select id from
+			system_user
+		WHERE
+			system_user.delete_status='0'
+	</select>
+</mapper>

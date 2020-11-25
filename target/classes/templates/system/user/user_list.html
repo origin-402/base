@@ -1,0 +1,777 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户列表</title>
+    <link rel="shortcut icon" href="favicon.ico">
+    <head  th:include="include/styleInclude"></head>
+    <link th:href="@{/assets/css/yuui/jquery.dataTables.css}" rel="stylesheet" type="text/css" />
+    <link href="css/plugins/chosen/chosen.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/plugins/toastr/css/toastr.css}">
+	<style type="text/css">
+	.toast-center-center {
+	  top: 50%;
+	  left: 50%;
+	  margin-top: -25px;
+	  margin-left: -150px;
+	}
+	</style>
+</head>
+
+<body class="gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>用户<small>列表</small></h5>
+                    </div>
+                    <div class="ibox-content">
+						<div class="form-horizontal clearfix">  
+							<div class="col-lg-3 col-sm-3">
+								<div class="form-group">
+									<label class="col-lg-5  col-sm-5 control-label">姓名：</label>
+		                            <div class="col-lg-7 col-sm-7 input-group">
+		                            	<input class="form-control" id="search_name" name="name" placeholder="">
+		                            </div>
+								</div>
+	                       </div>
+							<div class="col-lg-3 col-sm-3">
+								<div class="form-group">
+									<label class="col-lg-5  col-sm-5 control-label">手机号：</label>
+		                            <div class="col-lg-7 col-sm-7 input-group">
+		                            	<input class="form-control" id="search_phone" name="phone" placeholder="">
+		                            </div>
+								</div>
+	                       </div>
+	                       <div class="col-lg-3 col-sm-3">
+			                	<div class="form-group">
+			                		<div class="col-lg-2 col-sm-2"></div>
+		                           	<div class="col-lg-10 col-sm-10 input-group">
+                                        <button type="button" class="btn btn-primary" style="margin-right: 5px;" onclick="search123();"> <i class="fa fa-search"></i>&nbsp;查询</button>
+                                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#modal-create"
+                                        	style="margin-right: 5px;" onclick="create();" th:if="${session.sessionUser.hasPermissions('/system_user/saveUser')}"><i class="fa fa-plus-square"></i>&nbsp;新增</button>
+		                           	</div>
+			                    </div>
+	                       </div>
+	            		</div>
+	                     <table id="example" class="table table-bordered table-hover dataTables-example dataTable" >
+							<thead>
+								<tr>
+									<th style="width: 30px;">序号</th>
+									<th>姓名</th>
+									<th style="width: 50px">性别</th>
+									<th style="width: 90px;">手机号</th>
+									<th>机构账号</th>
+									<th>职务</th>
+									<th style="width: 90px;">登录状态</th>
+									<th style="width: 210px;">操作</th>
+								</tr>
+							</thead>
+							<tbody>
+							</tbody>
+						</table>
+						
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-create" class="modal fade" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title" style="color: white; text-align: center;" >新增用户</h3>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-sm-12">
+                            <form class="form-horizontal m-t" id="signupForm" method="post">
+                            	<div class="row">
+	                            	<div class="form-group col-sm-6">
+		                                <label class="col-sm-3 control-label"><span style="color:red;">*</span>登录名：</label>
+		                                <div class="col-sm-8">
+		                                    <input id="create_username" name="username" class="form-control" type="text">
+		                                    <span class="help-block m-b-none"><i class="fa fa-info-circle"></i>用于登录网站使用</span>
+		                                </div>
+		                            </div>
+		                            <div class="form-group col-sm-6">
+		                                <label class="col-sm-3 control-label"><span style="color:red;">*</span>密码：</label>
+		                                <div class="col-sm-8">
+		                                    <input id="create_password" name="password" class="form-control" type="password">
+		                                </div>
+		                            </div>
+                            	
+                            	</div>
+                            	<div class="row">
+		                            <div class="form-group col-sm-6">
+		                                <label class="col-sm-3 control-label"><span style="color:red;">*</span>角色：</label>
+		                                <div class="col-sm-8">
+			                                <input type="hidden" id="create_status" name="status">
+		                                	<select id="create_role" class="form-control" name="role_id">
+		                                		<option value="">请选择角色</option>
+		                                		<option th:each="role : ${roleList}" th:value="${role.id}" th:text="${role.name}"></option>
+		                                	</select>
+		                                </div>
+		                            </div>
+	                            	<div class="col-sm-6">
+	                            		<label class="col-sm-3 control-label"><span style="color:red;">*</span>登录状态：</label>
+	                            		<div class="switch col-sm-8" style="margin-top: 7px;">
+				                            <div class="onoffswitch">
+				                                <input type="checkbox" checked class="onoffswitch-checkbox" id="switch_status" name="switch_status">
+				                                <label class="onoffswitch-label" for="switch_status" style="margin-bottom: 0px;">
+				                                    <span class="onoffswitch-inner"></span>
+				                                    <span class="onoffswitch-switch"></span>
+				                                </label>
+				                            </div>
+				                        </div>
+				                    </div>
+                            	</div>
+                            	<div class="row">
+		                            <div class="form-group col-sm-6">
+		                                <label class="col-sm-3 control-label"><span style="color:red;">*</span>姓名：</label>
+		                                <div class="col-sm-8">
+		                                    <input id="create_name" name="name" class="form-control" type="text" aria-required="true" aria-invalid="false" >
+		                                </div>
+		                            </div>
+		                            <div class="form-group col-sm-6">
+		                                <label class="col-sm-3 control-label"><span style="color:red;">*</span>性别：</label>
+		                                <div class="col-sm-8">
+											<select id="create_sex" class="form-control" name="sex">
+												<option value="0" selected>男</option>
+												<option value="1">女</option>
+											</select>
+		                                </div>
+		                            </div>
+                            	</div>
+                            	<div class="row">
+		                            <div class="form-group col-sm-6">
+										<label class="col-sm-3 control-label"><span style="color:red;">*</span>手机号：</label>
+										<div class="col-sm-8">
+											<input id="create_phone" name="phone" class="form-control" type="text">
+										</div>
+									</div>
+									<div class="form-group col-sm-6">
+										<label class="col-sm-3 control-label"><span style="color:red;">*</span>职务：</label>
+										<div class="col-sm-8">
+											<input id="create_resign" name="resign" class="form-control" type="text" aria-required="true" aria-invalid="false" >
+										</div>
+									</div>
+								</div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                 <div class="modal-footer">
+					 <button type="button" class="btn btn-default" data-dismiss="modal" id="cancl"><i class="fa fa-times"></i>&nbsp;关闭</button>
+					 <button type="button" onclick="save()"  class="btn btn-primary"><i class="fa fa-check"></i>&nbsp;保存</button>
+				 </div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-form" class="modal fade" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">修改用户信息</h3>
+				</div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <form id="roleForm" class="form-horizontal m-t">
+                            	<input type="hidden" id="id" name="id">
+                            	<div class="row">
+		                            <div class="form-group col-sm-6">
+		                                <label class="col-sm-3 control-label"><span style="color:red;">*</span>姓名：</label>
+		                                <div class="col-sm-8">
+		                                    <input id="update_name" name="name" class="form-control" type="text" >
+		                                </div>
+		                            </div>
+		                            <div class="form-group col-sm-6">
+		                                <label class="col-sm-3 control-label"><span style="color:red;">*</span>性别：</label>
+		                                <div class="col-sm-8">
+											<select id="update_sex" class="form-control" name="sex">
+												<option value="0" selected>男</option>
+												<option value="1">女</option>
+											</select>
+		                                </div>
+		                            </div>
+                            	</div>
+                            	<div class="row">
+									<div class="form-group col-sm-6">
+										<label class="col-sm-3 control-label"><span style="color:red;">*</span>手机号：</label>
+										<div class="col-sm-8">
+											<input id="update_phone" name="phone" class="form-control" type="text">
+										</div>
+									</div>
+									<div class="form-group col-sm-6">
+										<label class="col-sm-3 control-label"><span style="color:red;">*</span>职务：</label>
+										<div class="col-sm-8">
+											<input id="update_resign" name="resign" class="form-control" type="text" >
+										</div>
+									</div>
+                            	</div>
+                            	<div class="row">
+		                            <div class="form-group col-sm-6">
+		                                <label class="col-sm-3 control-label"><span style="color:red;">*</span>角色：</label>
+		                                <div class="col-sm-8">
+			                                <input type="hidden" id="update_status" name="status">
+		                                	<select id="update_role" class="form-control" name="role_id">
+		                                		<option>请选择角色</option>
+		                                		<option th:each="role : ${roleList}" th:value="${role.id}" th:text="${role.name}"></option>
+		                                	</select>
+		                                </div>
+		                            </div>
+	                            	<div class="col-sm-6">
+	                            		<label class="col-sm-3 control-label"><span style="color:red;">*</span>登录状态：</label>
+	                            		<div class="switch col-sm-8" style="margin-top: 7px;">
+				                            <div class="onoffswitch">
+				                                <input type="checkbox" checked class="onoffswitch-checkbox" id="update_switch_status" name="switch_status">
+				                                <label class="onoffswitch-label" for="update_switch_status" style="margin-bottom: 0px;">
+				                                    <span class="onoffswitch-inner"></span>
+				                                    <span class="onoffswitch-switch"></span>
+				                                </label>
+				                            </div>
+				                        </div>
+				                    </div>
+                            	</div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                 <div class="modal-footer">
+					 <button type="button" class="btn btn-default" data-dismiss="modal" id="updateCancl"><i class="fa fa-times"></i>&nbsp;关闭</button>
+					 <button type="button" onclick="update()"  class="btn btn-primary"><i class="fa fa-check"></i>&nbsp;保存</button>
+				 </div>
+            </div>
+        </div>
+    </div>
+    <div id="password-form" class="modal fade" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">重置密码</h3>
+				</div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <form id="resetPassword">
+                            	<input type="hidden" id="userId" name="userId">
+                                <div class="form-group">
+                                    <label><span style="color:red;">*</span>密码：</label>
+                                    <input type="password" id="password" name="password" placeholder="请输入密码" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label><span style="color:red;">*</span>确认密码：</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="请输入密码" class="form-control">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                 <div class="modal-footer">
+					 <button type="button" class="btn btn-default" data-dismiss="modal" id="canclPass"><i class="fa fa-times"></i>&nbsp;关闭</button>
+					 <button type="button" onclick="updatePassword()"  class="btn btn-primary"><i class="fa fa-check"></i>&nbsp;保存</button>
+				 </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="infoConfirm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title"><i class="fa fa-warning"></i>&nbsp;提示</h3>
+				</div>
+				<div id="infoBody" class="modal-body"></div>
+				<div class="modal-footer">
+					<button id="delCancl" type="button" class="btn btn-default" data-dismiss="modal">
+						<i class="fa fa-times"></i>&nbsp;取消
+					</button>
+					<button id="sureUpdate" type="button" class="btn btn-primary">
+						<i class="fa fa-check"></i>&nbsp;确认
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+   	<script th:src="@{/assets/js/jquery.min.js?v=2.1.4}" ></script>
+	<script th:src="@{/assets/js/yuui/bootstrap.min.js}" ></script>
+	<script th:src="@{/assets/js/yuui/jquery.dataTables.js}"></script>
+	<script th:src="@{/assets/js/yuui/dataTables.bootstrap.js}"></script>
+	<script th:src="@{/assets/js/yuui/colResizable-1.5.min.js}"></script>
+	<script th:src="@{/assets/js/plugins/switchery/switchery.js}"></script>
+   	<script th:src="@{/assets/js/jquery.form.js}" ></script>
+	<script th:src="@{/plugins/layer/layer.js}"></script>
+	<script th:src="@{/plugins/toastr/js/toastr.min.js}"></script>
+	<script th:src="@{/assets/js/jquery.tips.js}"></script>
+    <script>
+    var url = "/system_user/listUser.do";
+	var table;
+	$(function () {
+		toastr.options = {
+			positionClass: "toast-center-center"
+		}
+		datatable(url);
+	});
+	
+	
+	function datatable(url){
+		table = $('#example').DataTable({
+			"ajax": {
+                "url": url
+            },
+            "pageLength": 10,
+			"pagingType":   "full_numbers",
+			"sLoadingRecords": "正在加载数据...",
+			"sZeroRecords": "暂无数据",
+			"ordering" :false,
+			"stateSave": true,
+			"searching": false,
+			"serverSide":true,
+			"destroy" : true,
+			"dom": 'rt<"bottom"iflp<"clear">>',	
+			"columns": [
+				{"data": "id"},
+				{"data": "name"},
+				{"data": "sex"},
+				{"data": "phone"},
+				{"data": "username"},
+				{"data": "resign"},
+				{"data": "status"},
+				{"data": "id"}
+            ],
+            "aoColumnDefs": [ { "bSortable": false, "targets": [0] },{ "class": "tn", "targets": [ 0 ] },
+                              {
+				  		           "targets": [ 0 ],  			//0表示列
+				  		           "render": function ( a, b, c, d) {//abcd表示行内容 a表示当前列单一行内容 c当前列所有行内容
+				  		        		/* var html='<input  name="ids" type="checkbox" value="'+a+'">';
+				                        return html; */
+				  		        	 	return d.row + 1 + d.settings._iDisplayStart;
+				  		           }
+							  },
+                              {
+				  		           "targets": [ 1 ],
+				  		           "render": function ( a, b, c, d) {
+				  		        	   if(a == null) {
+				  		        		   return "";
+				  		        	   } else {
+				  		        			 return a;  
+				  		        	   }
+			  		        	   }
+							  },
+                              {
+				  		           "targets": [ 2 ],
+				  		           "render": function ( a, b, c, d) {
+									   if(a == 0) {
+										   return '<i class="fa fa-mars"></i>';
+									   } else {
+										   return '<i class="fa fa-venus"></i>';
+									   }
+			  		        	   }
+							  },
+                              {
+				  		           "targets": [ 3 ],
+				  		           "render": function ( a, b, c, d) {
+				  		        	   if(a == null) {
+				  		        		   return "";
+				  		        	   } else {
+				  		        			 return a;  
+			  		        	   	   	}
+			  		        	   }
+							  },
+                              {
+				  		           "targets": [ 3 ],
+				  		           "render": function ( a, b, c, d) {
+				  		        	   if(a == null) {
+				  		        		   return "";
+				  		        	   } else {
+				  		        			 return a;
+			  		        	   	   	}
+			  		        	   }
+							  },
+                              {
+				  		           "targets": [ 4 ],
+				  		           "render": function ( a, b, c, d) {
+									   if(a == null) {
+										   return "";
+									   } else {
+										   return a + '(' + c.roleName + ')';
+									   }
+			  		        	   }
+							  },
+                              {
+				  		           "targets": [ 5 ],
+				  		           "render": function ( a, b, c, d) {
+
+									   if(a == null) {
+										   return "";
+									   } else {
+										   return a;
+									   }
+			  		        	   }
+							  },
+                              {
+				  		           "targets": [ 6 ],
+				  		           "render": function ( a, b, c, d) {
+				  		        	   if(a == 0) {
+				  		        		   return '<a class="btn btn-primary btn-xs p2 btn-rounded">活跃</a>';
+				  		        	   } else {
+				  		        			 return '<a class="btn btn-danger btn-xs p2 btn-rounded">冻结</a>';
+				  		        	   }
+			  		        	   }
+							  },
+	        				  {
+			     		            "targets": [ 7 ],
+			     		            "render": function ( a, b, c, d) {
+			     		            	var html = '<a class="btn btn-primary btn-xs p2" data-toggle="modal" data-target="#modal-form" onclick="getView(\''+a+'\')" ><i class="fa fa-edit"></i>&nbsp;修改</a>'
+			     		            		+'<a class="btn btn-info btn-xs p2" style="margin-left: 5px;" data-toggle="modal" data-target="#password-form" onclick="resetPassword(\''+a+'\')" ><i class="fa fa-repeat"></i>&nbsp;重置密码</a>'
+			     		            		+'<a class="btn btn-danger btn-xs p2" style="margin-left: 5px;" data-toggle="modal" data-target="#infoConfirm" onclick="toDel(\''+a+'\')"><i class="fa fa-trash"></i>&nbsp;删除</a>'
+			     		        	  	return html;
+			     		           }
+	        				  }
+   	                         	],
+			"language": {
+                "processing": "加载中...",
+				"lengthMenu": "显示 _MENU_ 项结果",
+				"zeroRecords": "没有匹配结果",
+				"info": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+				"infoEmpty": "显示第 0 至 0 项结果，共 0 项",
+				"infoFiltered": "(由 _MAX_ 项结果过滤)",
+				"infoPostFix": "",
+				"url": "",
+				"paginate": {
+					"first":    "首页",
+					"previous": "上一页",
+					"next":     "下一页",
+					"last":     "末页"
+				}
+           },
+           _fnPageChange:function(){
+           }
+		});
+		//使用col插件实现表格头宽度拖拽
+		$(".table").colResizable();
+	}
+	
+	function create() {
+		$("#create_username").val('');
+		$("#create_password").val('');
+		$("#create_role").val('');
+		$("#create_name").val('');
+		$("#create_phone").val('');
+	}
+	
+	function save() {
+		var status = $("#switch_status").prop("checked");
+		if (status) {
+			$("#create_status").val('0');
+		} else {
+			$("#create_status").val('1');
+		}
+		var username = $("#create_username").val();
+		if (username == null || username == '') {
+			$("#create_username").tips({
+				side:3,
+	            msg:'登录名不能为空',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#create_username").focus();
+        	return false;
+		}
+		var password = $("#create_password").val();
+		if (password == null || password == '') {
+			$("#create_password").tips({
+				side:3,
+	            msg:'密码不能为空',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#create_password").focus();
+        	return false;
+		}
+		var role = $("#create_role").val();
+		if (role == null || role == '') {
+			$("#create_role").tips({
+				side:3,
+	            msg:'请选择角色',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#create_role").focus();
+        	return false;
+		}
+		var name = $("#create_name").val();
+		if (name == null || name == '') {
+			$("#create_name").tips({
+				side:3,
+	            msg:'姓名不能为空',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#create_name").focus();
+        	return false;
+		}
+		var phone = $("#create_phone").val();
+		if (phone == null || phone == '') {
+			$("#create_phone").tips({
+				side:3,
+	            msg:'手机号不能为空',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#create_phone").focus();
+        	return false;
+		}
+		var resign = $('#create_resign').val();
+		if (resign == null || resign == '') {
+			$("#create_resign").tips({
+				side:3,
+				msg:'职务不能为空',
+				bg:'#AE81FF',
+				time:2
+			});
+			$("#create_resign").focus();
+			return false;
+		}
+		var index = layer.load(1, {
+			shade: [0.2,'#fff'] //0.1透明度的白色背景
+		});
+		$("#signupForm").ajaxSubmit({
+			url:'/system_user/saveUser',
+			type:'post',
+			dataType:'json',
+			success:function(data) {
+				layer.close(index);
+				if('201' == data.code){
+	    			toastr.success(data.message);
+	    			datatable(url);
+	    			create();
+					$('#cancl').click();
+    			} else {
+	    			toastr.warning(data.message);
+    			}
+			},
+			error:function(e){
+				layer.close(index);
+				console.log(e);
+				if ('500' == e.status) {
+					toastr.warning(e.responseJSON.message)
+				}
+				if ('200' == e.status) {
+					toastr.error("您没有权限");
+				}
+			}
+		})
+	}
+	
+	function getView(id){
+		$.ajax({
+			url:'/system_user/findUserById?id=' + id,
+			type:'get',
+			dataType:'json',
+			success:function(data) {
+				if (data.code == '200') {
+					var user = data.data.user;
+					$("#id").val(user.id);
+					$("#update_name").val(user.name);
+					$("#update_phone").val(user.phone);
+					$("#update_role").val(user.role_id);
+					$("#update_status").val(user.status);
+					$('#update_sex').val(user.sex);
+					$('#update_resign').val(user.resign);
+					if (user.status == '0') {
+						$("#update_switch_status").prop("checked",true);
+					}
+					if (user.status == '1') {
+						$("#update_switch_status").prop("checked",false);
+					}
+				}
+			}
+		})
+	}
+	
+	function update(){
+		var status = $("#update_switch_status").prop("checked");
+		if (status) {
+			$("#update_status").val('0');
+		} else {
+			$("#update_status").val('1');
+		}
+		var name = $("#update_name").val();
+		if (name == null || name == '') {
+			$("#update_name").tips({
+				side:3,
+	            msg:'姓名不能为空',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#update_name").focus();
+        	return false;
+		}
+		var phone = $("#update_phone").val();
+		if (phone == null || phone == '') {
+			$("#update_phone").tips({
+				side:3,
+	            msg:'手机号不能为空',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#update_phone").focus();
+        	return false;
+		}
+		var role = $("#update_role").val();
+		if (role == null || role == '') {
+			$("#update_role").tips({
+				side:3,
+	            msg:'请选择角色',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#update_role").focus();
+        	return false;
+		}
+        $("#roleForm").ajaxSubmit({
+            url: '/system_user/updateUser',
+            type: 'post',  
+            dataType: "json",
+            success: function(data) {
+            	if (data.code == '201') {
+	            	toastr.success(data.message);
+	            	datatable(url);
+	            	setTimeout(function() {
+   		            	$("#updateCancl").click();
+	            	}, 1000)
+            	} else {
+            		toastr.warning(data.message);
+            	}
+            },
+            error: function (e) {
+            	console.log(e);
+            	if ('500' == e.status) {
+						toastr.warning(e.responseJSON.message)
+  				}
+  				if ('200' == e.status) {
+  					toastr.error("您没有权限");
+  				}
+            }
+        });
+	}
+	
+	function resetPassword(id) {
+		$("#userId").val(id);
+		$("#password").val("");
+		$("#confirmPassword").val("");
+	}
+	
+	function updatePassword() {
+		var password = $("#password").val();
+		if (password == null || password == "") {
+			$("#password").tips({
+				side:3,
+	            msg:'请输入密码',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#password").focus();
+        	return false;
+		}
+		var confirmPassword = $("#confirmPassword").val();
+		if (confirmPassword == null || confirmPassword == "") {
+			$("#confirmPassword").tips({
+				side:3,
+	            msg:'请再次输入密码',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#confirmPassword").focus();
+        	return false;
+		}
+		if (confirmPassword != password) {
+			$("#confirmPassword").tips({
+				side:3,
+	            msg:'两次输入的密码不一致',
+	            bg:'#AE81FF',
+	            time:2
+	        });
+        	$("#confirmPassword").focus();
+        	return false;
+		}
+		var id = $("#userId").val();
+		$.ajax({
+			url:"/system_user/updatePassword",
+			data:{"id":id, "password":password},
+			type:"get",
+			dataType:"json",
+			success:function(data) {
+				if ("200" == data.code) {
+					toastr.success(data.message);
+					datatable(url);
+					setTimeout(function() {
+   		            	  $("#canclPass").click();
+	            	  }, 1000);
+				} else {
+					toastr.warning(data.message);
+				}
+			},
+			error:function(e) {
+				console.log(e);
+				if ('500' == e.status) {
+						toastr.warning(e.responseJSON.message)
+  				}
+  				if ('200' == e.status) {
+  					toastr.error("您没有权限");
+  				}
+			}
+		});
+	}
+	
+	function search123() {
+		var name = $("#search_name").val();
+		name = $.trim(name);
+		var phone = $("#search_phone").val();
+		phone = $.trim(phone);
+		var requestUrl = "/system_user/listUser?name="+name+"&phone="+phone;
+		datatable(requestUrl);
+		table.page(1).draw(false);
+	}
+	
+	function toDel(id) {
+		$("#infoBody").text("是否要删除该用户？");
+		$("#sureUpdate").attr("onclick", "del('"+id+"')");
+	}
+	
+	function del(id) {
+		$.ajax({
+			url:'/system_user/deleteUser?id=' + id,
+			type:'delete',
+			dataType:'json',
+			success:function(data) {
+				if (data.code == '204') {
+					toastr.success('删除成功');
+					datatable(url);
+				} else {
+					toastr.warning(data.message);
+				}
+				$("#delCancl").click();
+			},
+			error:function(e) {
+				console.log(e);
+				if ('500' == e.status) {
+					toastr.warning(e.responseJSON.message)
+				}
+				if ('200' == e.status) {
+					toastr.error("您没有权限");
+				}
+				$("#delCancl").click();
+			}
+		})
+	}
+	
+</script>
+
+</body>
+
+
+</html>
